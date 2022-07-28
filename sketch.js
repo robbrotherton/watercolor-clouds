@@ -17,8 +17,8 @@ function draw() {
   cs.update();
 
   // show framerate to check performance
-  // stroke(0);
-  // text(int(getFrameRate()), 10, windowHeight - 10);
+  stroke(0);
+  text(int(getFrameRate()), 10, windowHeight - 10);
 
 }
 
@@ -58,15 +58,15 @@ class CloudSystem {
 class Cloud {
 
   constructor(x, y) {
-    let base = new Base(8, height*random(.1, .2), x, y);
+    let base = new Base(8, random(50, 100), x, y);
     this.baseMutated = mutateMulti(base, 1);
     let prev_xmax = 0;
 
-    this.layers = 20;
+    this.layers = random(10, 30);
     this.clArr = [];
 
     for(let i = 0; i < this.layers; i++) {
-      this.clArr[i] = mutateMulti(this.baseMutated, 4);
+      this.clArr[i] = mutateMulti(this.baseMutated, random(2, 4));
       let xmax = max(this.clArr[i].x);
 
       if(xmax > prev_xmax) {
@@ -104,12 +104,12 @@ class Base {
     this.x = [];
     this.y = [];
     this.v = [];
-    let ry = r * .1;
+    let ry = r * random(0.1, 0.2);
     let angle = 0;
     let increment = TWO_PI / points;
 
     for(let i = 0; i < points; i++) {
-      if(angle > PI) ry = r * .5;
+      if(angle > PI) ry = r * 0.5;
       this.x[i] = cos(angle) * r + cx;
       this.y[i] = -sin(angle) * ry + cy;
       this.v[i] = 100 * noise(this.x[i], this.y[i]); //pow(1 + noise(this.x[i], this.y[i]), 7);     
