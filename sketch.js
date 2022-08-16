@@ -69,11 +69,9 @@ class Cloud {
     this.n_layers = random(10, 20);
 
     this.layers = make_layers(baseMutated, this.n_layers, 5);
-
   }
 
   off_screen() {
-
     let max_x = [];
 
       for(let i = 0; i < this.n_layers; i++) {
@@ -85,7 +83,7 @@ class Cloud {
 
   show() {
     for(let i = 0; i < this.n_layers; i++) {
-      this.layers[i].show(100, .1);
+      this.layers[i].show();
     }
   }
 
@@ -103,24 +101,17 @@ class cloudLayer {
     this.x = x;
     this.y = y;
     this.v = v;
-    this.b = 255;
-    this.a = .1;
   }
 
-  show(bri, alpha) {
+  show() {
     noStroke();
-    fill(bri, alpha);
+    fill(100, .1);
   
     beginShape();
     for(let i = 0; i < this.x.length; i++) {
       vertex(this.x[i], this.y[i]);
     }
     endShape(CLOSE);
-
-    // fill(0);
-    // for(let i = 0; i < this.x.length; i++) {
-    //   circle(this.x[i], this.y[i], 10);
-    // }
 
   }
 
@@ -153,24 +144,6 @@ class cloudBase {
     this.side = sqrt(pow(this.x[1] - this.x[0], 2) + pow(this.y[1] - this.y[0], 2));
   }
 
-  // show() {
-  //   // noStroke();
-  //   stroke(200);
-  //   fill(255);
-  
-  //   beginShape();
-  //   for(let i = 0; i < this.x.length; i++) {
-  //     vertex(this.x[i], this.y[i]);
-  //   }
-  //   endShape(CLOSE);
-
-  //   fill(0);
-  //   for(let i = 0; i < this.x.length; i++) {
-  //     circle(this.x[i], this.y[i], 10);
-  //   }
-
-  // }
-
 }
 
 function mutateShape(shape) {
@@ -187,7 +160,6 @@ function mutateShape(shape) {
     xend = shape.x[(i+1) % n];
     yend = shape.y[(i+1) % n];
 
-    // prop = random();
     side_length = sqrt(pow(x - xend, 2) + pow(y - yend, 2));
     prop = .5;
 
