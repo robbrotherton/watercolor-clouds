@@ -18,8 +18,8 @@ function draw() {
   cs.update();
 
   // uncomment to show framerate
-  stroke(0);
-  text(int(getFrameRate()), 10, windowHeight - 10);
+  // stroke(0);
+  // text(int(getFrameRate()), 10, windowHeight - 10);
 
 }
 
