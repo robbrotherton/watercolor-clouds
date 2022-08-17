@@ -1,11 +1,12 @@
+let MAX_CLOUDS = 15;
+let MIN_RADIUS = 80;
+let MAX_RADIUS = 180;
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
-
-  let MAX_CLOUDS = 10;
+  frameRate(10);
 
   cs = new CloudSystem(MAX_CLOUDS);
-
-  frameRate(10);
 
 }
 
@@ -17,8 +18,8 @@ function draw() {
   cs.update();
 
   // uncomment to show framerate
-  // stroke(0);
-  // text(int(getFrameRate()), 10, windowHeight - 10);
+  stroke(0);
+  text(int(getFrameRate()), 10, windowHeight - 10);
 
 }
 
@@ -29,10 +30,10 @@ class CloudSystem {
     this.len = max_clouds;
     this.clouds = [];        
     for (let i = 0; i < max_clouds; i++) {
-      let x = random(width*2);
-      let y = random(height);
-      let r = random(100, 200);
-      this.clouds.push(new Cloud(x, y, r));
+ 
+      let position = random_position_intial();
+      let radius = random(MIN_RADIUS, MAX_RADIUS);
+      this.clouds.push(new Cloud(position, radius));
     }
   }
   
@@ -40,12 +41,11 @@ class CloudSystem {
     for (let i = 0; i < this.len; i++) {
       this.clouds[i].move();
       
-      if (this.clouds[i].off_screen()) {
+      if (this.clouds[i].out_of_view()) {
         this.clouds.splice(i, 1);
-        let x = random(width+100, width*2);
-        let y = random(height);
-        let r = random(100, 200);
-        this.clouds.push(new Cloud(x, y, r));
+        let position = random_position();
+        let radius = random(MIN_RADIUS, MAX_RADIUS);
+        this.clouds.push(new Cloud(position, radius));
       }
     }
     
@@ -63,40 +63,43 @@ class CloudSystem {
 
 class Cloud {
 
-  constructor(x, y, r) {
-    let base = new cloudBase(6, r, x, y);
-    let baseMutated = mutateMulti(base, 1);
-    this.n_layers = random(10, 20);
+  constructor(position, radius) {
+    this.position = position;
+    let base = new CloudBase(8, radius);
+    let baseMutated = mutate_multi(base, 1);
+    this.n_layers = random(20, 30);
 
-    this.layers = make_layers(baseMutated, this.n_layers, 5);
+    this.layers = make_layers(baseMutated, this.n_layers, 4);
   }
 
-  off_screen() {
-    let max_x = [];
+  out_of_view() {
+    // let max_x = [];
 
-      for(let i = 0; i < this.n_layers; i++) {
-        max_x[i] = max(this.layers[i].x); 
-      }
+    //   for(let i = 0; i < this.n_layers; i++) {
+    //     max_x[i] = max(this.layers[i].x); 
+    //   }
       
-    return max(max_x) < 0;
+    // return max(max_x) < 0;
+    return this.position.x < (-MAX_RADIUS * 1.5);
   }
 
   show() {
+    push();
+    translate(this.position);
     for(let i = 0; i < this.n_layers; i++) {
       this.layers[i].show();
     }
+    pop();
   }
 
   move() {
-    for(let i = 0; i < this.n_layers; i++) {
-      this.layers[i].move();
-    }
+    this.position.x -= 1;
   }
 
 }
 
 
-class cloudLayer {
+class CloudLayer {
   constructor(x, y, v) {
     this.x = x;
     this.y = y;
@@ -115,17 +118,11 @@ class cloudLayer {
 
   }
 
-  move() {
-    for(let i = 0; i < this.x.length; i++) {
-      this.x[i] -= 1;
-    }
-  }
-
 }
 
 
-class cloudBase {
-  constructor(points, r, cx, cy) {
+class CloudBase {
+  constructor(points, r) {
     this.x = [];
     this.y = [];
     this.v = [];
@@ -135,9 +132,9 @@ class cloudBase {
 
     for(let i = 0; i < points; i++) {
       if(angle > PI) ry = r * 0.5;
-      this.x[i] = cos(angle) * r + cx;
-      this.y[i] = -sin(angle) * ry + cy;
-      this.v[i] = 100 * noise(this.x[i], this.y[i]); //pow(1 + noise(this.x[i], this.y[i]), 7);     
+      this.x[i] = cos(angle) * r;
+      this.y[i] = sin(angle) * ry;
+      this.v[i] = 70 * noise(this.x[i], this.y[i]); //pow(1 + noise(this.x[i], this.y[i]), 7);     
       angle  += increment;
     }
 
@@ -146,7 +143,7 @@ class cloudBase {
 
 }
 
-function mutateShape(shape) {
+function mutate_shape(shape) {
 
   new_x = [];
   new_y = [];
@@ -185,17 +182,17 @@ function mutateShape(shape) {
     new_v[i*2+1] = dist;
   }
 
-  outShape = new cloudLayer(new_x, new_y, new_v);
+  outShape = new CloudLayer(new_x, new_y, new_v);
 
   return outShape;
 
 }
 
-function mutateMulti(shape, iterations) {
+function mutate_multi(shape, iterations) {
 
   outShape = shape;
   for(let i = 0; i < iterations; i++) {
-    outShape = mutateShape(outShape);
+    outShape = mutate_shape(outShape);
   }
 
   return outShape;
@@ -206,11 +203,20 @@ function mutateMulti(shape, iterations) {
 function make_layers(base, n_layers, mutations) {
   let layers = [];
     for(let i = 0; i < n_layers; i++) {
-      layers[i] = mutateMulti(base, mutations);
+      layers[i] = mutate_multi(base, mutations);
     }
 
   return layers;
 
+}
+
+
+function random_position_intial() {
+  return createVector(random(width*2), random(height));
+}
+
+function random_position() {
+  return createVector(random(width + MAX_RADIUS, width*2), random(height));
 }
 
 
