@@ -38,24 +38,22 @@ class CloudSystem {
   }
   
   update() {
-    for (let i = 0; i < this.len; i++) {
-      this.clouds[i].move();
+    for (let [index, cloud] of this.clouds.entries()) {
+      cloud.move();
       
-      if (this.clouds[i].out_of_view()) {
-        this.clouds.splice(i, 1);
+      if (cloud.out_of_view()) {
+        this.clouds.splice(index, 1);
         let position = random_position();
         let radius = random(MIN_RADIUS, MAX_RADIUS);
         this.clouds.push(new Cloud(position, radius));
       }
-    }
-    
+    }    
   }
   
   show() {
-    for (let i = 0; i < this.len; i++) {
-      this.clouds[i].show();
+    for (const cloud of this.clouds) {
+      cloud.show();
     }
-    
   }
 
 }
@@ -73,21 +71,14 @@ class Cloud {
   }
 
   out_of_view() {
-    // let max_x = [];
-
-    //   for(let i = 0; i < this.n_layers; i++) {
-    //     max_x[i] = max(this.layers[i].x); 
-    //   }
-      
-    // return max(max_x) < 0;
     return this.position.x < (-MAX_RADIUS * 1.5);
   }
 
   show() {
     push();
     translate(this.position);
-    for(let i = 0; i < this.n_layers; i++) {
-      this.layers[i].show();
+    for(const layer of this.layers) {
+      layer.show();
     }
     pop();
   }
@@ -126,7 +117,7 @@ class CloudBase {
     this.x = [];
     this.y = [];
     this.v = [];
-    let ry = r * random(0.05, 0.2);
+    let ry = r * random(0.05, 0.5);
     let angle = 0;
     let increment = TWO_PI / points;
 
@@ -207,7 +198,6 @@ function make_layers(base, n_layers, mutations) {
     }
 
   return layers;
-
 }
 
 
