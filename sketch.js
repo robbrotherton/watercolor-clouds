@@ -4,6 +4,7 @@ let MAX_RADIUS = 100;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  
   frameRate(20);
 
   cs = new CloudSystem(MAX_CLOUDS);
@@ -17,9 +18,13 @@ function draw() {
   cs.show();
   cs.update();
 
+  for (const cloud of cs.clouds) {
+    cloud.generateNextLayer(4);
+  }
+
   // uncomment to show framerate
-  stroke(0);
-  text(int(getFrameRate()), 10, windowHeight - 10);
+  // stroke(0);
+  // text(int(getFrameRate()), 10, windowHeight - 10);
 
 }
 
@@ -38,15 +43,12 @@ class CloudSystem {
   }
 
   update() {
-    for (let [index, cloud] of this.clouds.entries()) {
-      cloud.move();
-
-      if (cloud.out_of_view()) {
-        this.clouds.splice(index, 1);
-        let position = random_position();
-        let radius = random(MIN_RADIUS, MAX_RADIUS);
-        this.clouds.push(new Cloud(position, radius));
-      }
+    this.clouds.forEach((cloud) => cloud.move())
+    this.clouds = this.clouds.filter(cloud => !cloud.out_of_view());
+    while (this.clouds.length < this.len) {
+      let position = random_position();
+      let radius = random(MIN_RADIUS, MAX_RADIUS);
+      this.clouds.push(new Cloud(position, radius));
     }
   }
 
@@ -64,26 +66,40 @@ class Cloud {
   constructor(position, radius) {
     this.position = position;
     let base = new CloudBase(8, radius);
-    let baseMutated = mutate_multi(base, 3);
+    // Convert base to CloudLayer before calling mutate_multi
+    this.baseLayer = new CloudLayer(base.x, base.y, base.v);
+    this.baseMutated = mutate_multi(this.baseLayer, 3);
+    this.n_layers = random(30, 50);
+    this.layers = [];
     this.n_layers = random(20, 40);
-
-    this.layers = make_layers(baseMutated, this.n_layers, 4);
+    this.layers = [];
 
     // Create a graphics buffer the same size as the cloud
     this.buffer = createGraphics(radius * 8, radius * 8);
 
-    // Draw the cloud onto the buffer
-    this.buffer.push();
-    this.buffer.translate(this.buffer.width / 2, this.buffer.height / 2); // Translate to the center of the buffer
+    this.isComplete = false; // Has the cloud finished generating?
+  }
 
-    for (const layer of this.layers) {
-      layer.show(this.buffer);  // Note: You'll need to modify your show() method to take a p5.Renderer as an argument
+  generateNextLayer(mutations) {
+    if (!this.isComplete) {
+      let nextLayer = mutate_multi(this.baseMutated, mutations);
+      this.layers.push(nextLayer);
+
+      // Draw the next layer onto the buffer
+      this.buffer.push();
+      this.buffer.translate(this.buffer.width / 2, this.buffer.height / 2);
+      nextLayer.show(this.buffer);
+      this.buffer.pop();
+
+      // Check if the cloud generation is complete
+      if (this.layers.length >= this.n_layers) {
+        this.isComplete = true;
+      }
     }
-    this.buffer.pop();
   }
 
   out_of_view() {
-    return this.position.x < (-MAX_RADIUS * 1.5);
+    return this.position.x < (-MAX_RADIUS * 3);
   }
 
   show() {
@@ -109,13 +125,13 @@ class CloudLayer {
     p.colorMode('hsl');
     p.noStroke();
     p.fill(100, .05);
-  
+
     p.beginShape();
-    for(let i = 0; i < this.x.length; i++) {
+    for (let i = 0; i < this.x.length; i++) {
       p.vertex(this.x[i], this.y[i]);
     }
     p.endShape(p.CLOSE);
-}
+  }
 
 }
 
@@ -133,7 +149,7 @@ class CloudBase {
       if (angle > PI) ry = r * 0.5;
       this.x[i] = cos(angle) * r;
       this.y[i] = sin(angle) * ry;
-      this.v[i] = pow(1 + noise(this.x[i], this.y[i]), 9); //100 * noise(this.x[i], this.y[i]); //pow(1 + noise(this.x[i], this.y[i]), 7);     
+      this.v[i] = 100 * noise(this.x[i], this.y[i]); //pow(1 + noise(this.x[i], this.y[i]), 7);     
       angle += increment;
     }
 
